@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportHeight="108"
+    android:viewportWidth="108">
+
+    <!-- White card body (rounded rect, 48 x 60, centered in safe zone) -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M34,24 L74,24 A4,4 0 0 1 78,28 L78,80 A4,4 0 0 1 74,84 L34,84 A4,4 0 0 1 30,80 L30,28 A4,4 0 0 1 34,24 Z" />
+
+    <!-- Center spade pip (black) -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M54,44 C54,44 44,52 44,58 C44,63 48,66 51,65 C53,65 54,64 54,63 L50,70 L58,70 L54,63 C54,64 55,65 57,65 C60,66 64,63 64,58 C64,52 54,44 54,44 Z" />
+
+    <!-- "A" top-left of card, stroked -->
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="0.9"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M33,36 L35,30 L37,36 M34,33.8 L36,33.8" />
+
+    <!-- "A" bottom-right of card, rotated 180 (apex points down) -->
+    <path
+        android:strokeColor="#FF000000"
+        android:strokeWidth="0.9"
+        android:fillColor="#00000000"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M73,72 L75,78 L77,72 M74,74.2 L76,74.2" />
+</vector>

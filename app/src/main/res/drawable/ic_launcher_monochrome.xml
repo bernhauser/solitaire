@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportHeight="108"
+    android:viewportWidth="108">
+
+    <!-- Bold spade silhouette filling the safe zone; system tints this for themed icons. -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M54,25 C54,25 32,42 32,56 C32,67 40,74 47,73 C51,73 54,71 54,69 L44,83 L64,83 L54,69 C54,71 57,73 61,73 C68,74 76,67 76,56 C76,42 54,25 54,25 Z" />
+</vector>
