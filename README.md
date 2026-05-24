@@ -7,7 +7,7 @@ A Klondike Solitaire game for Android, built with Jetpack Compose.
 ## Features
 
 - Tap and drag-and-drop card movement
-- Undo (200-deep history)
+- Undo (10-deep history)
 - Auto-complete when the game is winnable
 - Dead-end detection with game-over prompt
 - Win celebration overlay
