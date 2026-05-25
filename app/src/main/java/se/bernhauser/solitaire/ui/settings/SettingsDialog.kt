@@ -21,7 +21,7 @@ fun SettingsDialog(
     text = {
       Column {
         if (BuildConfig.DEBUG) {
-          TextButton(onClick = onDebugWin) { Text("Dbg Win") }
+          TextButton(onClick = onDebugWin) { Text("Set to Win state") }
         } else {
           Text("No settings yet.")
         }

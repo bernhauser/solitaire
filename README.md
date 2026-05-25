@@ -66,6 +66,7 @@ app/src/main/java/se/bernhauser/solitaire/
 Place your new card files in:
 
 `app/src/main/assets/cards/`
+
 The app currently loads SVGs from there using a strict naming convention — <rank><suit>.svg:
 
 - Ranks: A 2 3 4 5 6 7 8 9 T J Q K
