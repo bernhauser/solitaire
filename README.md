@@ -1,3 +1,7 @@
+
+<img width="488" height="1002" alt="image" src="https://github.com/user-attachments/assets/e84e0e08-ecc1-4c04-ab54-7ca3ab23bbf0" />
+
+
 # Solitaire
 
 A Klondike Solitaire game for Android, built with Jetpack Compose.
