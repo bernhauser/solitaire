@@ -23,15 +23,22 @@ import se.bernhauser.solitaire.ui.cards.PlayingCard
 val TableauCardOffset = 16.dp
 
 @Composable
-fun TableauColumn(
+internal fun TableauColumn(
   modifier: Modifier = Modifier,
   faceDownCount: Int,
   faceUp: List<Card>,
+  revealPlan: StartupRevealPlan,
   col: Int = -1,
   dragState: BoardDragState? = null,
   back: CardBack = CardBack.Red,
-  revealedCount: Int = Int.MAX_VALUE,
-  startIndex: Int = 0,
+  coveredVisibleCount: Int = Int.MAX_VALUE,
+  activeCoveredIndex: Int? = null,
+  showFaceUpCards: Boolean = true,
+  faceUpVisibleCount: Int = Int.MAX_VALUE,
+  activeFaceUpIndex: Int? = null,
+  onCoveredReady: (Int) -> Unit = {},
+  onFirstCoveredReady: (() -> Unit)? = null,
+  onFaceUpReady: (Int) -> Unit = {},
   onDrop: (DragSource, DropTarget?) -> DropResult? = { _, _ -> null },
 ) {
   val hideFromIndex = (dragState?.active?.source as? DragSource.TableauRun)
@@ -62,14 +69,21 @@ fun TableauColumn(
     modifier = modifier,
     content = {
       repeat(faceDownCount) { i ->
+        val revealIndex = revealPlan.tableauCoveredIndex(col, i)
         PlayingCard(
           card = Placeholder,
           faceUp = false,
           back = back,
-          revealed = revealedCount > startIndex + i,
+          revealed = revealIndex == null || revealIndex < coveredVisibleCount,
+          onImageReady = when {
+            revealIndex != null && activeCoveredIndex == revealIndex -> ({ onCoveredReady(revealIndex) })
+            revealIndex != null -> onFirstCoveredReady
+            else -> null
+          },
         )
       }
       faceUp.forEachIndexed { i, card ->
+        val revealIndex = revealPlan.tableauFaceUpIndex(col, i)
         val hidden = hideFromIndex != null && i >= hideFromIndex
         val isTopFaceUp = i == faceUp.lastIndex
         val cardModifier = if (dragState != null && col >= 0) {
@@ -85,7 +99,7 @@ fun TableauColumn(
         } else {
           Modifier
         }
-        if (i == 0 && card == flippingCard) {
+        if (showFaceUpCards && i == 0 && card == flippingCard) {
           FlipCard(
             modifier = cardModifier,
             card = card,
@@ -96,7 +110,12 @@ fun TableauColumn(
           PlayingCard(
             modifier = cardModifier,
             card = card,
-            revealed = revealedCount > startIndex + faceDownCount + i,
+            revealed = showFaceUpCards && (revealIndex == null || revealIndex < faceUpVisibleCount),
+            onImageReady = if (revealIndex != null && activeFaceUpIndex == revealIndex) {
+              { onFaceUpReady(revealIndex) }
+            } else {
+              null
+            },
           )
         }
       }

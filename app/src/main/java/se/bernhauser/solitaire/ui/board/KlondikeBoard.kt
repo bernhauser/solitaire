@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -30,11 +31,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import se.bernhauser.solitaire.DeckPreload
 import se.bernhauser.solitaire.game.FoundationMoveSource
 import se.bernhauser.solitaire.game.GameState
 import se.bernhauser.solitaire.game.Suit
@@ -45,8 +44,15 @@ import se.bernhauser.solitaire.game.nextAutoCompleteSource
 import se.bernhauser.solitaire.ui.cards.PlayingCard
 import se.bernhauser.solitaire.ui.theme.FeltGreen
 
-private const val RevealStepMs: Long = 60L
 private const val AutoCompleteMoveMs: Int = 120
+
+private data class StartupRevealUiState(
+  val coveredVisibleCount: Int,
+  val activeCoveredIndex: Int?,
+  val showFaceUpCards: Boolean,
+  val faceUpVisibleCount: Int,
+  val activeFaceUpIndex: Int?,
+)
 
 @Composable
 fun KlondikeBoard(
@@ -63,22 +69,56 @@ fun KlondikeBoard(
   autoComplete: Boolean = false,
   onAutoCompleteDone: () -> Unit = {},
 ) {
-  val initialTotal = remember(dealId) { totalCardCount(state) }
-  var revealedCount by remember(dealId) {
-    mutableIntStateOf(if (animateReveal) 0 else Int.MAX_VALUE)
-  }
+  val revealPlan = remember(dealId) { buildStartupRevealPlan(state) }
+  var coveredVisibleCount by remember(dealId, animateReveal) { mutableIntStateOf(0) }
+  var faceUpPhaseStarted by remember(dealId, animateReveal) { mutableStateOf(false) }
+  var faceUpVisibleCount by remember(dealId, animateReveal) { mutableIntStateOf(0) }
   LaunchedEffect(dealId, animateReveal) {
-    if (!animateReveal) {
-      revealedCount = Int.MAX_VALUE
-      return@LaunchedEffect
-    }
-    snapshotFlow { DeckPreload.backsReady }.filter { it }.first()
-    repeat(initialTotal) {
-      delay(RevealStepMs)
-      revealedCount++
-    }
-    revealedCount = Int.MAX_VALUE
+    coveredVisibleCount = if (animateReveal) minOf(1, revealPlan.coveredTotal) else revealPlan.coveredTotal
+    faceUpPhaseStarted = revealPlan.coveredTotal == 0 && revealPlan.faceUpTotal > 0
+    faceUpVisibleCount = if (faceUpPhaseStarted) 1 else 0
   }
+
+  fun startFaceUpPhase() {
+    if (faceUpPhaseStarted || revealPlan.faceUpTotal == 0) return
+    faceUpPhaseStarted = true
+    faceUpVisibleCount = 1
+  }
+
+  fun onCoveredReady(index: Int) {
+    if (!animateReveal || index != coveredVisibleCount - 1) return
+    if (index == revealPlan.coveredTotal - 1) {
+      startFaceUpPhase()
+    } else {
+      coveredVisibleCount++
+    }
+  }
+
+  fun onFirstCoveredReady() {
+    if (animateReveal || faceUpPhaseStarted) return
+    startFaceUpPhase()
+  }
+
+  fun onFaceUpReady(index: Int) {
+    if (!faceUpPhaseStarted || index != faceUpVisibleCount - 1) return
+    faceUpVisibleCount = if (index == revealPlan.faceUpTotal - 1) Int.MAX_VALUE else faceUpVisibleCount + 1
+  }
+
+  val revealState = StartupRevealUiState(
+    coveredVisibleCount = if (revealPlan.coveredTotal == 0) Int.MAX_VALUE else coveredVisibleCount,
+    activeCoveredIndex = if (animateReveal && coveredVisibleCount in 1..revealPlan.coveredTotal) {
+      coveredVisibleCount - 1
+    } else {
+      null
+    },
+    showFaceUpCards = faceUpPhaseStarted || revealPlan.faceUpTotal == 0,
+    faceUpVisibleCount = if (faceUpPhaseStarted) faceUpVisibleCount else 0,
+    activeFaceUpIndex = if (faceUpPhaseStarted && faceUpVisibleCount in 1..revealPlan.faceUpTotal) {
+      faceUpVisibleCount - 1
+    } else {
+      null
+    },
+  )
 
   val dragState = rememberBoardDragState()
   val scope = rememberCoroutineScope()
@@ -223,16 +263,24 @@ fun KlondikeBoard(
     ) {
       TopRow(
         state = state,
+        revealPlan = revealPlan,
+        revealState = revealState,
         dragState = dragState,
-        revealedCount = revealedCount,
+        onCoveredReady = ::onCoveredReady,
+        onFirstCoveredReady = ::onFirstCoveredReady,
+        onFaceUpReady = ::onFaceUpReady,
         onStockTap = animatedStockTap,
         onWasteTap = animatedWasteTap,
         onDrop = onDrop,
       )
       TableauRowFilled(
         state = state,
+        revealPlan = revealPlan,
+        revealState = revealState,
         dragState = dragState,
-        revealedCount = revealedCount,
+        onCoveredReady = ::onCoveredReady,
+        onFirstCoveredReady = ::onFirstCoveredReady,
+        onFaceUpReady = ::onFaceUpReady,
         onTopTap = animatedTableauTopTap,
         onDrop = onDrop,
       )
@@ -251,13 +299,16 @@ private fun drawnCardsPreview(state: GameState): List<se.bernhauser.solitaire.ga
 @Composable
 private fun TopRow(
   state: GameState,
+  revealPlan: StartupRevealPlan,
+  revealState: StartupRevealUiState,
   dragState: BoardDragState,
-  revealedCount: Int,
+  onCoveredReady: (Int) -> Unit,
+  onFirstCoveredReady: () -> Unit,
+  onFaceUpReady: (Int) -> Unit,
   onStockTap: () -> Unit,
   onWasteTap: () -> Unit,
   onDrop: (DragSource, DropTarget?) -> DropResult?,
 ) {
-  val tableauTotal = state.tableau.sumOf { it.faceDown.size + it.faceUp.size }
   Row(
     modifier = Modifier.fillMaxWidth(),
     horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -265,33 +316,37 @@ private fun TopRow(
     FoundationsBlock(
       modifier = Modifier.weight(4f),
       state = state,
+      revealPlan = revealPlan,
+      revealState = revealState,
       dragState = dragState,
-      revealedCount = revealedCount,
-      startIndex = tableauTotal,
+      onFaceUpReady = onFaceUpReady,
       onDrop = onDrop,
     )
     Box(modifier = Modifier.weight(1f))
-    val foundationsRevealed = state.foundations.count { it.isNotEmpty() }
-    val wasteStart = tableauTotal + foundationsRevealed
     WastePile(
       modifier = Modifier
         .weight(1f)
         .clickable(enabled = state.waste.isNotEmpty()) { onWasteTap() },
       cards = state.waste,
+      revealPlan = revealPlan,
       dragState = dragState,
-      revealedCount = revealedCount,
-      startIndex = wasteStart,
+      faceUpVisibleCount = revealState.faceUpVisibleCount,
+      activeFaceUpIndex = revealState.activeFaceUpIndex,
+      showFaceUpCards = revealState.showFaceUpCards,
+      onFaceUpReady = onFaceUpReady,
       onDrop = onDrop,
     )
-    val visibleWaste = state.waste.takeLast(3).size
     StockBox(
       modifier = Modifier
         .weight(1f)
         .clickable { onStockTap() },
       empty = state.stock.isEmpty(),
+      revealPlan = revealPlan,
       dragState = dragState,
-      revealedCount = revealedCount,
-      startIndex = wasteStart + visibleWaste,
+      coveredVisibleCount = revealState.coveredVisibleCount,
+      activeCoveredIndex = revealState.activeCoveredIndex,
+      onCoveredReady = onCoveredReady,
+      onFirstCoveredReady = if (!revealState.showFaceUpCards) onFirstCoveredReady else null,
     )
   }
 }
@@ -300,16 +355,16 @@ private fun TopRow(
 private fun FoundationsBlock(
   modifier: Modifier,
   state: GameState,
+  revealPlan: StartupRevealPlan,
+  revealState: StartupRevealUiState,
   dragState: BoardDragState,
-  revealedCount: Int,
-  startIndex: Int,
+  onFaceUpReady: (Int) -> Unit,
   onDrop: (DragSource, DropTarget?) -> DropResult?,
 ) {
   Row(
     modifier = modifier.dropTarget(dragState, DropTarget.Foundation),
     horizontalArrangement = Arrangement.spacedBy(4.dp),
   ) {
-    var idx = startIndex
     val displayed = state.foundations.sortedBy { it.isEmpty() }
     displayed.forEachIndexed { displayedIndex, pile ->
       val slotAnchor = Modifier
@@ -318,13 +373,18 @@ private fun FoundationsBlock(
       if (pile.isEmpty()) {
         EmptySlot(modifier = slotAnchor)
       } else {
+        val faceUpIndex = revealPlan.foundationFaceUpIndex(displayedIndex)
         val top = pile.last()
         val dragging = dragState.active?.source == DragSource.Foundation(top.suit)
         val below = pile.dropLast(1).lastOrNull()
         Box(modifier = slotAnchor) {
           if (dragging) {
             if (below != null) {
-              PlayingCard(card = below, revealed = revealedCount > idx)
+              PlayingCard(
+                card = below,
+                revealed = revealState.showFaceUpCards &&
+                  (faceUpIndex == null || faceUpIndex < revealState.faceUpVisibleCount),
+              )
             } else {
               EmptySlot()
             }
@@ -339,10 +399,15 @@ private fun FoundationsBlock(
                 onDrop = onDrop,
               ),
             card = top,
-            revealed = revealedCount > idx,
+            revealed = revealState.showFaceUpCards &&
+              (faceUpIndex == null || faceUpIndex < revealState.faceUpVisibleCount),
+            onImageReady = if (faceUpIndex != null && revealState.activeFaceUpIndex == faceUpIndex) {
+              { onFaceUpReady(faceUpIndex) }
+            } else {
+              null
+            },
           )
         }
-        idx++
       }
     }
   }
@@ -351,8 +416,12 @@ private fun FoundationsBlock(
 @Composable
 private fun ColumnScope.TableauRowFilled(
   state: GameState,
+  revealPlan: StartupRevealPlan,
+  revealState: StartupRevealUiState,
   dragState: BoardDragState,
-  revealedCount: Int,
+  onCoveredReady: (Int) -> Unit,
+  onFirstCoveredReady: () -> Unit,
+  onFaceUpReady: (Int) -> Unit,
   onTopTap: (Int) -> Unit,
   onDrop: (DragSource, DropTarget?) -> DropResult?,
 ) {
@@ -362,19 +431,20 @@ private fun ColumnScope.TableauRowFilled(
       .weight(1f),
     horizontalArrangement = Arrangement.spacedBy(4.dp),
   ) {
-    var idx = 0
     state.tableau.forEachIndexed { col, pile ->
       TableauSlot(
         modifier = Modifier.weight(1f),
         pile = pile,
+        revealPlan = revealPlan,
+        revealState = revealState,
         col = col,
         dragState = dragState,
-        revealedCount = revealedCount,
-        startIndex = idx,
+        onCoveredReady = onCoveredReady,
+        onFirstCoveredReady = onFirstCoveredReady,
+        onFaceUpReady = onFaceUpReady,
         onTopTap = onTopTap,
         onDrop = onDrop,
       )
-      idx += pile.faceDown.size + pile.faceUp.size
     }
   }
 }
@@ -383,10 +453,13 @@ private fun ColumnScope.TableauRowFilled(
 private fun RowScope.TableauSlot(
   modifier: Modifier,
   pile: se.bernhauser.solitaire.game.TableauPile,
+  revealPlan: StartupRevealPlan,
+  revealState: StartupRevealUiState,
   col: Int,
   dragState: BoardDragState,
-  revealedCount: Int,
-  startIndex: Int,
+  onCoveredReady: (Int) -> Unit,
+  onFirstCoveredReady: () -> Unit,
+  onFaceUpReady: (Int) -> Unit,
   onTopTap: (Int) -> Unit,
   onDrop: (DragSource, DropTarget?) -> DropResult?,
 ) {
@@ -404,10 +477,17 @@ private fun RowScope.TableauSlot(
     TableauColumn(
       faceDownCount = pile.faceDown.size,
       faceUp = pile.faceUp,
+      revealPlan = revealPlan,
       col = col,
       dragState = dragState,
-      revealedCount = revealedCount,
-      startIndex = startIndex,
+      coveredVisibleCount = revealState.coveredVisibleCount,
+      activeCoveredIndex = revealState.activeCoveredIndex,
+      showFaceUpCards = revealState.showFaceUpCards,
+      faceUpVisibleCount = revealState.faceUpVisibleCount,
+      activeFaceUpIndex = revealState.activeFaceUpIndex,
+      onCoveredReady = onCoveredReady,
+      onFirstCoveredReady = if (!revealState.showFaceUpCards) onFirstCoveredReady else null,
+      onFaceUpReady = onFaceUpReady,
       onDrop = onDrop,
     )
   }

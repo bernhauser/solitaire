@@ -15,12 +15,15 @@ internal const val WasteFanOffsetFraction = 0.35f
 internal const val WasteVisibleCount = 3
 
 @Composable
-fun WastePile(
+internal fun WastePile(
   modifier: Modifier = Modifier,
   cards: List<Card>,
+  revealPlan: StartupRevealPlan,
   dragState: BoardDragState? = null,
-  revealedCount: Int = Int.MAX_VALUE,
-  startIndex: Int = 0,
+  faceUpVisibleCount: Int = Int.MAX_VALUE,
+  activeFaceUpIndex: Int? = null,
+  showFaceUpCards: Boolean = true,
+  onFaceUpReady: (Int) -> Unit = {},
   onDrop: (DragSource, DropTarget?) -> DropResult? = { _, _ -> null },
 ) {
   if (cards.isEmpty()) {
@@ -38,6 +41,7 @@ fun WastePile(
     content = {
       val topIndex = visible.lastIndex
       visible.forEachIndexed { i, card ->
+        val revealIndex = revealPlan.wasteFaceUpIndex(i)
         val isTop = i == topIndex
         val cardModifier = when {
           isTop && dragState != null -> Modifier
@@ -55,7 +59,12 @@ fun WastePile(
         PlayingCard(
           modifier = cardModifier,
           card = card,
-          revealed = revealedCount > startIndex + i,
+          revealed = showFaceUpCards && (revealIndex == null || revealIndex < faceUpVisibleCount),
+          onImageReady = if (revealIndex != null && activeFaceUpIndex == revealIndex) {
+            { onFaceUpReady(revealIndex) }
+          } else {
+            null
+          },
         )
       }
     },
@@ -76,22 +85,31 @@ fun WastePile(
 }
 
 @Composable
-fun StockBox(
+internal fun StockBox(
   modifier: Modifier = Modifier,
   empty: Boolean,
+  revealPlan: StartupRevealPlan,
   dragState: BoardDragState? = null,
-  revealedCount: Int = Int.MAX_VALUE,
-  startIndex: Int = 0,
+  coveredVisibleCount: Int = Int.MAX_VALUE,
+  activeCoveredIndex: Int? = null,
+  onCoveredReady: (Int) -> Unit = {},
+  onFirstCoveredReady: (() -> Unit)? = null,
 ) {
   val anchored = if (dragState != null) modifier.anchor(dragState, Anchor.Stock) else modifier
   if (empty) {
     EmptySlot(modifier = anchored)
   } else {
+    val coveredIndex = revealPlan.stockCoveredIndex
     PlayingCard(
       modifier = anchored,
       card = StockTopPlaceholder,
       faceUp = false,
-      revealed = revealedCount > startIndex,
+      revealed = coveredIndex == null || coveredIndex < coveredVisibleCount,
+      onImageReady = when {
+        coveredIndex != null && activeCoveredIndex == coveredIndex -> ({ onCoveredReady(coveredIndex) })
+        coveredIndex != null -> onFirstCoveredReady
+        else -> null
+      },
     )
   }
 }

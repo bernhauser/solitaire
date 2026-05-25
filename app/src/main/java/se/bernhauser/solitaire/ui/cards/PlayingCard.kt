@@ -9,7 +9,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -28,9 +30,10 @@ fun PlayingCard(
   faceUp: Boolean = true,
   back: CardBack = CardBack.Red,
   revealed: Boolean = true,
+  onImageReady: (() -> Unit)? = null,
 ) {
-  if (faceUp) CardFace(modifier = modifier, card = card, revealed = revealed)
-  else CardBackImage(modifier = modifier, back = back, revealed = revealed)
+  if (faceUp) CardFace(modifier = modifier, card = card, revealed = revealed, onImageReady = onImageReady)
+  else CardBackImage(modifier = modifier, back = back, revealed = revealed, onImageReady = onImageReady)
 }
 
 @Composable
@@ -38,14 +41,14 @@ fun CardFace(
   modifier: Modifier = Modifier,
   card: Card,
   revealed: Boolean = true,
+  onImageReady: (() -> Unit)? = null,
 ) {
   CardSlot(modifier = modifier) {
     if (revealed) {
-      AsyncImage(
-        modifier = Modifier.matchParentSize(),
+      CardImage(
         model = assetUrl(card.assetKey),
         contentDescription = "${card.rank.name} of ${card.suit.name}",
-        contentScale = ContentScale.Fit,
+        onImageReady = onImageReady,
       )
     }
   }
@@ -56,14 +59,14 @@ fun CardBackImage(
   modifier: Modifier = Modifier,
   back: CardBack = CardBack.Red,
   revealed: Boolean = true,
+  onImageReady: (() -> Unit)? = null,
 ) {
   CardSlot(modifier = modifier) {
     if (revealed) {
-      AsyncImage(
-        modifier = Modifier.matchParentSize(),
+      CardImage(
         model = assetUrl(back.assetKey),
         contentDescription = "Card back",
-        contentScale = ContentScale.Fit,
+        onImageReady = onImageReady,
       )
     }
   }
@@ -120,4 +123,31 @@ private fun CardSlot(
   Box(modifier = modifier.aspectRatio(CardAspectRatio), content = content)
 }
 
-private fun assetUrl(key: String): String = "file:///android_asset/cards/$key.svg"
+@Composable
+private fun BoxScope.CardImage(
+  model: String,
+  contentDescription: String,
+  onImageReady: (() -> Unit)? = null,
+) {
+  var notifiedReady by remember(model) { mutableStateOf(false) }
+  AsyncImage(
+    modifier = Modifier.matchParentSize(),
+    model = model,
+    contentDescription = contentDescription,
+    contentScale = ContentScale.Fit,
+    onSuccess = {
+      if (!notifiedReady) {
+        notifiedReady = true
+        onImageReady?.invoke()
+      }
+    },
+    onError = {
+      if (!notifiedReady) {
+        notifiedReady = true
+        onImageReady?.invoke()
+      }
+    },
+  )
+}
+
+private fun assetUrl(key: String): String = "file:///android_asset/generated_cards/$key.png"

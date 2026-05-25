@@ -56,11 +56,11 @@ class GameViewModel(private val repo: SolitaireRepository) : ViewModel() {
     viewModelScope.launch {
       val loaded = repo.loadSession()
       if (loaded != null) {
-        _session.value = loaded
         isRestored.value = true
+        _session.value = loaded
       } else {
-        _session.value = freshSession()
         isRestored.value = false
+        _session.value = freshSession()
       }
     }
   }
