@@ -76,11 +76,14 @@ class GameViewModel(private val repo: SolitaireRepository) : ViewModel() {
     _gameOver.value = false
   }
 
-  fun debugWin() {
+  fun debugWin() = loadDebugState(nearWinState())
+
+  fun debugStuck() = loadDebugState(stuckState())
+
+  private fun loadDebugState(s: GameState) {
     isRestored.value = false
     dealId.value += 1
     _gameOver.value = false
-    val s = nearWinState()
     replace(
       SavedSession(
         current = s,

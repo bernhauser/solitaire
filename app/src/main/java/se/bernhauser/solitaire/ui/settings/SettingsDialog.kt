@@ -12,6 +12,7 @@ import se.bernhauser.solitaire.BuildConfig
 fun SettingsDialog(
   modifier: Modifier = Modifier,
   onDebugWin: () -> Unit,
+  onDebugStuck: () -> Unit,
   onDismiss: () -> Unit,
 ) {
   AlertDialog(
@@ -22,6 +23,7 @@ fun SettingsDialog(
       Column {
         if (BuildConfig.DEBUG) {
           TextButton(onClick = onDebugWin) { Text("Set to Win state") }
+          TextButton(onClick = onDebugStuck) { Text("Set to stuck state") }
         } else {
           Text("No settings yet.")
         }

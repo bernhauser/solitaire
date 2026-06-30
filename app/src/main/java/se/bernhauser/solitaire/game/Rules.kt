@@ -125,13 +125,18 @@ fun GameState.hasAnyImmediateMove(): Boolean {
 }
 
 private fun isUsefulRunMove(srcPile: TableauPile, from: Int, dstPile: TableauPile): Boolean {
+  // Uncovering a face-down card is real progress.
   val flipsCard = from == 0 && srcPile.faceDown.isNotEmpty()
   if (flipsCard) return true
+  // Clearing a column (freeing it for a King) is progress, but only when the
+  // destination isn't itself empty — a lone King shuffling between empty
+  // columns achieves nothing.
   val dstEmpty = dstPile.faceUp.isEmpty() && dstPile.faceDown.isEmpty()
-  // Moving the entire face-up portion from a pile with no face-downs onto an empty pile
-  // is a pure no-op (e.g. King shuffling between empty columns).
-  val srcEmptiesIntoEmpty = from == 0 && srcPile.faceDown.isEmpty() && dstEmpty
-  return !srcEmptiesIntoEmpty
+  val emptiesColumn = from == 0 && srcPile.faceDown.isEmpty() && !dstEmpty
+  if (emptiesColumn) return true
+  // Any other run-to-run relocation just reshuffles exposed cards without
+  // opening up further play, so it doesn't count as a live move.
+  return false
 }
 
 fun GameState.canAutoComplete(): Boolean {

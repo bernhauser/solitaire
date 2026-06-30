@@ -144,6 +144,10 @@ private fun GameScreen(modifier: Modifier = Modifier) {
         showSettings = false
         vm.debugWin()
       },
+      onDebugStuck = {
+        showSettings = false
+        vm.debugStuck()
+      },
       onDismiss = { showSettings = false },
     )
   }
