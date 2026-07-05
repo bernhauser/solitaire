@@ -27,8 +27,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.filter
@@ -122,9 +120,8 @@ fun KlondikeBoard(
 
   val dragState = rememberBoardDragState()
   val scope = rememberCoroutineScope()
-  val density = LocalDensity.current
   val onDrop: (DragSource, DropTarget?) -> DropResult? = { source, target ->
-    handleDrop(state, source, target, dragState, density, onDropOnTableau, onDropOnFoundation)
+    handleDrop(state, source, target, dragState, onDropOnTableau, onDropOnFoundation)
   }
 
   suspend fun animateWasteToFoundation(snapshot: GameState, durationMs: Int): Boolean {
@@ -498,7 +495,6 @@ private fun handleDrop(
   source: DragSource,
   target: DropTarget?,
   dragState: BoardDragState,
-  density: Density,
   onDropOnTableau: (TableauMoveSource, Int) -> Unit,
   onDropOnFoundation: (FoundationMoveSource) -> Unit,
 ): DropResult? = when (target) {
@@ -507,7 +503,7 @@ private fun handleDrop(
     val move = source.asTableauMove()
     if (move == null || state.moveToTableau(move, target.column) == null) null
     else {
-      val dest = tableauSettleTopLeft(state, target.column, dragState, density)
+      val dest = tableauSettleTopLeft(state, target.column, dragState)
       if (dest == null) null
       else DropResult(dest) { onDropOnTableau(move, target.column) }
     }
@@ -530,14 +526,13 @@ private fun tableauSettleTopLeft(
   state: GameState,
   col: Int,
   dragState: BoardDragState,
-  density: Density,
 ): Offset? {
   val anchor = dragState.anchorRect(Anchor.TableauTop(col)) ?: return null
   val pile = state.tableau.getOrNull(col) ?: return null
   return if (pile.faceUp.isEmpty() && pile.faceDown.isEmpty()) {
     anchor.topLeft
   } else {
-    val stepPx = with(density) { TableauCardOffset.toPx() }
+    val stepPx = anchor.height * TableauFaceUpOverlapFraction
     Offset(anchor.left, anchor.top + stepPx)
   }
 }

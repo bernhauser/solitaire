@@ -22,6 +22,9 @@ import se.bernhauser.solitaire.ui.cards.PlayingCard
 
 val TableauCardOffset = 16.dp
 
+/** Fraction of a face-up card's height left visible when covered, so its rank/suit banner stays fully readable. */
+const val TableauFaceUpOverlapFraction = 0.33f
+
 @Composable
 internal fun TableauColumn(
   modifier: Modifier = Modifier,
@@ -124,7 +127,7 @@ internal fun TableauColumn(
     val width = constraints.maxWidth
     val cardHeight = (width / CardAspectRatio).toInt()
     val faceDownStep = TableauCardOffset.toPx().toInt()
-    val faceUpStep = TableauCardOffset.toPx().toInt()
+    val faceUpStep = (cardHeight * TableauFaceUpOverlapFraction).toInt()
 
     val cardConstraints = Constraints.fixed(width, cardHeight)
     val placeables = measurables.map { it.measure(cardConstraints) }

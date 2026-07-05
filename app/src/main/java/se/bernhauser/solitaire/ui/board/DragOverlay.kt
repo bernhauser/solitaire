@@ -14,7 +14,7 @@ fun DragOverlay(state: BoardDragState) {
   val active = state.active ?: return
   val density = LocalDensity.current
   val topLeft = active.pointer - active.anchor
-  val stepPx = with(density) { TableauCardOffset.toPx() }
+  val stepPx = active.cardSize.height * TableauFaceUpOverlapFraction
   val widthDp = with(density) { active.cardSize.width.toDp() }
   val heightDp = with(density) { active.cardSize.height.toDp() }
 

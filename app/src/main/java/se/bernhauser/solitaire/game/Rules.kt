@@ -99,8 +99,7 @@ fun GameState.moveToFoundation(source: FoundationMoveSource): GameState? {
   }
 }
 
-fun GameState.isWon(): Boolean =
-  foundations.size == 4 && foundations.all { it.size == Rank.entries.size }
+fun GameState.isWon(): Boolean = foundations.size == 4 && foundations.all { it.size == Rank.entries.size }
 
 fun GameState.hasAnyImmediateMove(): Boolean {
   if (waste.isNotEmpty()) {
