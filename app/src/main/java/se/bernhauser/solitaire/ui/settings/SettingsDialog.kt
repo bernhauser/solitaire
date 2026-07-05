@@ -6,7 +6,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import se.bernhauser.solitaire.BuildConfig
+
+private const val SHOW_DEBUG_SETTINGS = false
+
+val hasSettings: Boolean = SHOW_DEBUG_SETTINGS
 
 @Composable
 fun SettingsDialog(
@@ -21,7 +24,7 @@ fun SettingsDialog(
     title = { Text("Settings") },
     text = {
       Column {
-        if (BuildConfig.DEBUG) {
+        if (SHOW_DEBUG_SETTINGS) {
           TextButton(onClick = onDebugWin) { Text("Set to Win state") }
           TextButton(onClick = onDebugStuck) { Text("Set to stuck state") }
         } else {

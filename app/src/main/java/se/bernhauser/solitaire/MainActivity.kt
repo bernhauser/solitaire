@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import se.bernhauser.solitaire.game.GameViewModel
 import se.bernhauser.solitaire.ui.board.KlondikeBoard
 import se.bernhauser.solitaire.ui.settings.SettingsDialog
+import se.bernhauser.solitaire.ui.settings.hasSettings
 import se.bernhauser.solitaire.ui.theme.FeltGreen
 import se.bernhauser.solitaire.ui.theme.SolitaireTheme
 import se.bernhauser.solitaire.ui.win.GameOverOverlay
@@ -88,11 +89,13 @@ private fun GameScreen(modifier: Modifier = Modifier) {
               color = if (autoCompleting) Color.White.copy(alpha = 0.4f) else Color.White,
             )
           }
-          TextButton(onClick = { showSettings = true }, enabled = !autoCompleting) {
-            Text(
-              "☰",
-              color = if (autoCompleting) Color.White.copy(alpha = 0.4f) else Color.White,
-            )
+          if (hasSettings) {
+            TextButton(onClick = { showSettings = true }, enabled = !autoCompleting) {
+              Text(
+                "☰",
+                color = if (autoCompleting) Color.White.copy(alpha = 0.4f) else Color.White,
+              )
+            }
           }
         },
         colors = TopAppBarDefaults.topAppBarColors(
