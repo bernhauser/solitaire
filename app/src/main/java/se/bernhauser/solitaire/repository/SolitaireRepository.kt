@@ -4,6 +4,8 @@ import android.content.Context
 import kotlinx.serialization.KSerializer
 import se.bernhauser.solitaire.configuration.ConfigStorage
 import se.bernhauser.solitaire.configuration.Configuration
+import se.bernhauser.solitaire.persistence.FreeCellSession
+import se.bernhauser.solitaire.persistence.FreeCellSessionVersion
 import se.bernhauser.solitaire.persistence.KlondikeSession
 import se.bernhauser.solitaire.persistence.KlondikeSessionVersion
 import se.bernhauser.solitaire.persistence.SessionCodec
@@ -13,6 +15,7 @@ import se.bernhauser.solitaire.persistence.SpiderSessionVersion
 interface RepositorySupplier {
   val klondikeRepo: GameSessionStore<KlondikeSession>
   val spiderRepo: GameSessionStore<SpiderSession>
+  val freeCellRepo: GameSessionStore<FreeCellSession>
 }
 
 interface GameSessionStore<T : Any> {
@@ -57,6 +60,15 @@ class SolitaireRepositorySupplier(applicationContext: Context) : RepositorySuppl
       config = Configuration.SpiderSavedSession,
       serializer = SpiderSession.serializer(),
       version = SpiderSessionVersion,
+    )
+  }
+
+  override val freeCellRepo: GameSessionStore<FreeCellSession> by lazy {
+    DataStoreSessionStore(
+      configStorage = configStorage,
+      config = Configuration.FreeCellSavedSession,
+      serializer = FreeCellSession.serializer(),
+      version = FreeCellSessionVersion,
     )
   }
 }

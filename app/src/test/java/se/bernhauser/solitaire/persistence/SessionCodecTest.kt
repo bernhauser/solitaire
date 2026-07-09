@@ -4,6 +4,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Test
+import se.bernhauser.solitaire.game.freecell.FreeCellCardSource
+import se.bernhauser.solitaire.game.freecell.dealNewFreeCell
+import se.bernhauser.solitaire.game.freecell.moveToCell
 import se.bernhauser.solitaire.game.klondike.FoundationMoveSource
 import se.bernhauser.solitaire.game.klondike.dealNewGame
 import se.bernhauser.solitaire.game.klondike.drawFromStock
@@ -71,6 +74,17 @@ class SessionCodecTest {
     val session = SpiderSession(difficulty = SpiderDifficulty.TwoSuits, current = s1, history = listOf(s0))
     val encoded = SessionCodec.encode(SpiderSession.serializer(), SpiderSessionVersion, session)
     val decoded = SessionCodec.decode(SpiderSession.serializer(), SpiderSessionVersion, encoded)
+    assertEquals(session, decoded)
+  }
+
+  @Test
+  fun freeCellSessionRoundTrip() {
+    // The move leaves a mix of occupied and null cells, exercising nullable slots.
+    val s0 = dealNewFreeCell(seed = 11L)
+    val s1 = s0.moveToCell(FreeCellCardSource.TableauTop(0), 2) ?: error("cell move failed")
+    val session = FreeCellSession(current = s1, history = listOf(s0))
+    val encoded = SessionCodec.encode(FreeCellSession.serializer(), FreeCellSessionVersion, session)
+    val decoded = SessionCodec.decode(FreeCellSession.serializer(), FreeCellSessionVersion, encoded)
     assertEquals(session, decoded)
   }
 }

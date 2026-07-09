@@ -5,4 +5,6 @@ sealed class Configuration<T : Any>(val key: String, val defaultValue: T) {
   data object KlondikeSavedSession : Configuration<String>(key = "SAVED_SESSION", defaultValue = "")
 
   data object SpiderSavedSession : Configuration<String>(key = "SPIDER_SESSION", defaultValue = "")
+
+  data object FreeCellSavedSession : Configuration<String>(key = "FREECELL_SESSION", defaultValue = "")
 }

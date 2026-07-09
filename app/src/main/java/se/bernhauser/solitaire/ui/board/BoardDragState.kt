@@ -203,11 +203,13 @@ sealed interface DragSource {
   data object Waste : DragSource
   data class Foundation(val suit: Suit) : DragSource
   data class TableauRun(val column: Int, val fromIndex: Int) : DragSource
+  data class FreeCell(val index: Int) : DragSource
 }
 
 sealed interface DropTarget {
   data class Tableau(val column: Int) : DropTarget
   data object Foundation : DropTarget
+  data class FreeCell(val index: Int) : DropTarget
 }
 
 data class DropResult(val destinationTopLeft: Offset, val applyMove: () -> Unit)
@@ -217,6 +219,7 @@ sealed interface Anchor {
   data object Stock : Anchor
   data class TableauTop(val column: Int) : Anchor
   data class FoundationDisplayedAt(val index: Int) : Anchor
+  data class FreeCellAt(val index: Int) : Anchor
 }
 
 enum class StockAnimMode { Draw, Recycle }
