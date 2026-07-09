@@ -18,6 +18,7 @@ import se.bernhauser.solitaire.ui.freecell.FreeCellScreen
 import se.bernhauser.solitaire.ui.klondike.KlondikeScreen
 import se.bernhauser.solitaire.ui.landing.GameMenuItem
 import se.bernhauser.solitaire.ui.landing.LandingScreen
+import se.bernhauser.solitaire.ui.pyramid.PyramidScreen
 import se.bernhauser.solitaire.ui.spider.SpiderScreen
 import se.bernhauser.solitaire.ui.theme.SolitaireTheme
 import se.bernhauser.solitaire.ui.tripeaks.TriPeaksScreen
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-private enum class AppScreen { Landing, Klondike, Spider, FreeCell, TriPeaks }
+private enum class AppScreen { Landing, Klondike, Spider, FreeCell, TriPeaks, Pyramid }
 
 @Composable
 private fun AppRoot() {
@@ -45,11 +46,13 @@ private fun AppRoot() {
       onPlaySpider = { screen = AppScreen.Spider },
       onPlayFreeCell = { screen = AppScreen.FreeCell },
       onPlayTriPeaks = { screen = AppScreen.TriPeaks },
+      onPlayPyramid = { screen = AppScreen.Pyramid },
     )
     AppScreen.Klondike -> KlondikeScreen(onBack = { screen = AppScreen.Landing })
     AppScreen.Spider -> SpiderScreen(onBack = { screen = AppScreen.Landing })
     AppScreen.FreeCell -> FreeCellScreen(onBack = { screen = AppScreen.Landing })
     AppScreen.TriPeaks -> TriPeaksScreen(onBack = { screen = AppScreen.Landing })
+    AppScreen.Pyramid -> PyramidScreen(onBack = { screen = AppScreen.Landing })
   }
 }
 
@@ -59,6 +62,7 @@ private fun Landing(
   onPlaySpider: () -> Unit,
   onPlayFreeCell: () -> Unit,
   onPlayTriPeaks: () -> Unit,
+  onPlayPyramid: () -> Unit,
 ) {
   val app = LocalContext.current.applicationContext as SolitaireApp
   val hasKlondikeSave by produceState(initialValue = false) {
@@ -72,6 +76,9 @@ private fun Landing(
   }
   val hasTriPeaksSave by produceState(initialValue = false) {
     value = app.repositorySupplier.triPeaksRepo.load() != null
+  }
+  val hasPyramidSave by produceState(initialValue = false) {
+    value = app.repositorySupplier.pyramidRepo.load() != null
   }
   LandingScreen(
     games = listOf(
@@ -118,6 +125,17 @@ private fun Landing(
         ),
         inProgress = hasTriPeaksSave,
         onPlay = onPlayTriPeaks,
+      ),
+      GameMenuItem(
+        title = "Pyramid",
+        description = "Pair cards that add up to 13",
+        previewCards = listOf(
+          Card(Rank.Queen, Suit.Hearts),
+          Card(Rank.Ace, Suit.Spades),
+          Card(Rank.King, Suit.Diamonds),
+        ),
+        inProgress = hasPyramidSave,
+        onPlay = onPlayPyramid,
       ),
     ),
   )

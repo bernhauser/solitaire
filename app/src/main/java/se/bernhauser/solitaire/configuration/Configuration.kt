@@ -9,4 +9,6 @@ sealed class Configuration<T : Any>(val key: String, val defaultValue: T) {
   data object FreeCellSavedSession : Configuration<String>(key = "FREECELL_SESSION", defaultValue = "")
 
   data object TriPeaksSavedSession : Configuration<String>(key = "TRIPEAKS_SESSION", defaultValue = "")
+
+  data object PyramidSavedSession : Configuration<String>(key = "PYRAMID_SESSION", defaultValue = "")
 }

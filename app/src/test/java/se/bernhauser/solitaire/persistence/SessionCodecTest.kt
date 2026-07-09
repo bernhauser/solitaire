@@ -11,6 +11,8 @@ import se.bernhauser.solitaire.game.klondike.FoundationMoveSource
 import se.bernhauser.solitaire.game.klondike.dealNewGame
 import se.bernhauser.solitaire.game.klondike.drawFromStock
 import se.bernhauser.solitaire.game.klondike.moveToFoundation
+import se.bernhauser.solitaire.game.pyramid.dealNewPyramid
+import se.bernhauser.solitaire.game.pyramid.drawFromStock as pyramidDraw
 import se.bernhauser.solitaire.game.spider.SpiderDifficulty
 import se.bernhauser.solitaire.game.spider.dealFromStock
 import se.bernhauser.solitaire.game.spider.dealNewSpider
@@ -76,6 +78,18 @@ class SessionCodecTest {
     val session = SpiderSession(difficulty = SpiderDifficulty.TwoSuits, current = s1, history = listOf(s0))
     val encoded = SessionCodec.encode(SpiderSession.serializer(), SpiderSessionVersion, session)
     val decoded = SessionCodec.decode(SpiderSession.serializer(), SpiderSessionVersion, encoded)
+    assertEquals(session, decoded)
+  }
+
+  @Test
+  fun pyramidSessionRoundTrip() {
+    val s0 = dealNewPyramid(seed = 17L)
+    val s1 = s0.pyramidDraw() ?: error("draw failed")
+    // Clear a few slots so nullable board positions round-trip too.
+    val s2 = s1.copy(board = s1.board.mapIndexed { i, c -> if (i > 24) null else c })
+    val session = PyramidSession(current = s2, history = listOf(s1, s0))
+    val encoded = SessionCodec.encode(PyramidSession.serializer(), PyramidSessionVersion, session)
+    val decoded = SessionCodec.decode(PyramidSession.serializer(), PyramidSessionVersion, encoded)
     assertEquals(session, decoded)
   }
 
