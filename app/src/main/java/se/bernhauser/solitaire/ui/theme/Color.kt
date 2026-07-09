@@ -11,4 +11,5 @@ val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
 val FeltGreen = Color(0xFF1B5E20)
+val FeltGreenLight = Color(0xFF2E7D32)
 val SlotOutline = Color(0x66FFFFFF)

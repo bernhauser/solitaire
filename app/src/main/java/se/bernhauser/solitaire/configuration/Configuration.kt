@@ -1,9 +1,8 @@
 package se.bernhauser.solitaire.configuration
 
 sealed class Configuration<T : Any>(val key: String, val defaultValue: T) {
-  data object SavedSession : Configuration<String>(key = SAVED_SESSION_KEY, defaultValue = "")
+  // Key predates the multi-game split; keep it so existing Klondike saves survive.
+  data object KlondikeSavedSession : Configuration<String>(key = "SAVED_SESSION", defaultValue = "")
 
-  companion object {
-    const val SAVED_SESSION_KEY = "SAVED_SESSION"
-  }
+  data object SpiderSavedSession : Configuration<String>(key = "SPIDER_SESSION", defaultValue = "")
 }

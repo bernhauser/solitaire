@@ -24,6 +24,7 @@ fun GameOverOverlay(
   onNewGame: () -> Unit,
   onUndo: () -> Unit,
   canUndo: Boolean,
+  subtitle: String = "You dealt through the stock without a single playable card.",
 ) {
   Box(
     modifier = modifier
@@ -43,7 +44,7 @@ fun GameOverOverlay(
         fontWeight = FontWeight.Bold,
       )
       Text(
-        text = "You dealt through the stock without a single playable card.",
+        text = subtitle,
         color = Color.White.copy(alpha = 0.85f),
         fontSize = 16.sp,
       )

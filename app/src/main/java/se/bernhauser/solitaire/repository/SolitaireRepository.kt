@@ -1,36 +1,62 @@
 package se.bernhauser.solitaire.repository
 
 import android.content.Context
+import kotlinx.serialization.KSerializer
 import se.bernhauser.solitaire.configuration.ConfigStorage
 import se.bernhauser.solitaire.configuration.Configuration
-import se.bernhauser.solitaire.persistence.SavedSession
-import se.bernhauser.solitaire.persistence.SavedSessionCodec
+import se.bernhauser.solitaire.persistence.KlondikeSession
+import se.bernhauser.solitaire.persistence.KlondikeSessionVersion
+import se.bernhauser.solitaire.persistence.SessionCodec
+import se.bernhauser.solitaire.persistence.SpiderSession
+import se.bernhauser.solitaire.persistence.SpiderSessionVersion
 
 interface RepositorySupplier {
-  val gameRepo: SolitaireRepository
+  val klondikeRepo: GameSessionStore<KlondikeSession>
+  val spiderRepo: GameSessionStore<SpiderSession>
 }
 
-interface SolitaireRepository {
-  suspend fun loadSession(): SavedSession?
-  suspend fun saveSession(session: SavedSession)
-  suspend fun clearSession()
+interface GameSessionStore<T : Any> {
+  suspend fun load(): T?
+  suspend fun save(session: T)
+  suspend fun clear()
 }
 
-class SolitaireRepositoryImpl(applicationContext: Context) : SolitaireRepository {
+class DataStoreSessionStore<T : Any>(
+  private val configStorage: ConfigStorage,
+  private val config: Configuration<String>,
+  private val serializer: KSerializer<T>,
+  private val version: Int,
+) : GameSessionStore<T> {
+  override suspend fun load(): T? =
+    SessionCodec.decode(serializer, version, configStorage.get(config))
+
+  override suspend fun save(session: T) {
+    configStorage.saveConfig(config, SessionCodec.encode(serializer, version, session))
+  }
+
+  override suspend fun clear() {
+    configStorage.saveConfig(config, "")
+  }
+}
+
+class SolitaireRepositorySupplier(applicationContext: Context) : RepositorySupplier {
   private val configStorage = ConfigStorage(applicationContext)
 
-  override suspend fun loadSession(): SavedSession? =
-    SavedSessionCodec.decode(configStorage.get(Configuration.SavedSession))
-
-  override suspend fun saveSession(session: SavedSession) {
-    configStorage.saveConfig(Configuration.SavedSession, SavedSessionCodec.encode(session))
+  override val klondikeRepo: GameSessionStore<KlondikeSession> by lazy {
+    DataStoreSessionStore(
+      configStorage = configStorage,
+      config = Configuration.KlondikeSavedSession,
+      serializer = KlondikeSession.serializer(),
+      version = KlondikeSessionVersion,
+    )
   }
 
-  override suspend fun clearSession() {
-    configStorage.saveConfig(Configuration.SavedSession, "")
+  override val spiderRepo: GameSessionStore<SpiderSession> by lazy {
+    DataStoreSessionStore(
+      configStorage = configStorage,
+      config = Configuration.SpiderSavedSession,
+      serializer = SpiderSession.serializer(),
+      version = SpiderSessionVersion,
+    )
   }
-}
-
-class SolitaireRepositorySupplier(private val applicationContext: Context) : RepositorySupplier {
-  override val gameRepo: SolitaireRepository by lazy { SolitaireRepositoryImpl(applicationContext) }
 }

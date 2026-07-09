@@ -1,5 +1,7 @@
 package se.bernhauser.solitaire.ui.board
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,6 +22,12 @@ import se.bernhauser.solitaire.ui.cards.CardAspectRatio
 import se.bernhauser.solitaire.ui.cards.FlipCard
 import se.bernhauser.solitaire.ui.cards.PlayingCard
 
+/** Maps a column/row position to its startup-reveal sequence index, or null when the card is always shown. */
+interface ColumnRevealPlan {
+  fun coveredIndex(column: Int, row: Int): Int?
+  fun faceUpIndex(column: Int, row: Int): Int?
+}
+
 val TableauCardOffset = 16.dp
 
 /** Fraction of a face-up card's height left visible when covered, so its rank/suit banner stays fully readable. */
@@ -30,7 +38,7 @@ internal fun TableauColumn(
   modifier: Modifier = Modifier,
   faceDownCount: Int,
   faceUp: List<Card>,
-  revealPlan: StartupRevealPlan,
+  revealPlan: ColumnRevealPlan? = null,
   col: Int = -1,
   dragState: BoardDragState? = null,
   back: CardBack = CardBack.Red,
@@ -43,6 +51,7 @@ internal fun TableauColumn(
   onFirstCoveredReady: (() -> Unit)? = null,
   onFaceUpReady: (Int) -> Unit = {},
   onDrop: (DragSource, DropTarget?) -> DropResult? = { _, _ -> null },
+  onCardTap: ((Int) -> Unit)? = null,
 ) {
   val hideFromIndex = (dragState?.active?.source as? DragSource.TableauRun)
     ?.takeIf { it.column == col }
@@ -72,7 +81,7 @@ internal fun TableauColumn(
     modifier = modifier,
     content = {
       repeat(faceDownCount) { i ->
-        val revealIndex = revealPlan.tableauCoveredIndex(col, i)
+        val revealIndex = revealPlan?.coveredIndex(col, i)
         PlayingCard(
           card = Placeholder,
           faceUp = false,
@@ -86,13 +95,23 @@ internal fun TableauColumn(
         )
       }
       faceUp.forEachIndexed { i, card ->
-        val revealIndex = revealPlan.tableauFaceUpIndex(col, i)
+        val revealIndex = revealPlan?.faceUpIndex(col, i)
         val hidden = hideFromIndex != null && i >= hideFromIndex
         val isTopFaceUp = i == faceUp.lastIndex
         val cardModifier = if (dragState != null && col >= 0) {
           Modifier
             .then(if (hidden) Modifier.alpha(0f) else Modifier)
             .then(if (isTopFaceUp) Modifier.anchor(dragState, Anchor.TableauTop(col)) else Modifier)
+            .then(
+              if (onCardTap != null) {
+                Modifier.clickable(
+                  interactionSource = remember(i) { MutableInteractionSource() },
+                  indication = null,
+                ) { onCardTap(i) }
+              } else {
+                Modifier
+              }
+            )
             .dragSource(
               state = dragState,
               source = DragSource.TableauRun(col, i),
