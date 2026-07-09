@@ -544,14 +544,14 @@ private fun DragSource.movedCardSuit(state: KlondikeState): Suit? = when (this) 
   DragSource.Waste -> state.waste.lastOrNull()?.suit
   is DragSource.Foundation -> state.foundations[suit.ordinal].lastOrNull()?.suit
   is DragSource.TableauRun -> state.tableau.getOrNull(column)?.faceUp?.getOrNull(fromIndex)?.suit
-  is DragSource.FreeCell -> null
+  is DragSource.FreeCell, is DragSource.BoardSlot -> null
 }
 
 private fun DragSource.asTableauMove(): TableauMoveSource? = when (this) {
   DragSource.Waste -> TableauMoveSource.WasteTop
   is DragSource.Foundation -> TableauMoveSource.FoundationTop(suit)
   is DragSource.TableauRun -> TableauMoveSource.TableauRun(column, fromIndex)
-  is DragSource.FreeCell -> null
+  is DragSource.FreeCell, is DragSource.BoardSlot -> null
 }
 
 private fun DragSource.asFoundationMove(state: KlondikeState): FoundationMoveSource? = when (this) {
@@ -562,7 +562,7 @@ private fun DragSource.asFoundationMove(state: KlondikeState): FoundationMoveSou
     if (pile != null && fromIndex == pile.faceUp.lastIndex) FoundationMoveSource.TableauTop(column)
     else null
   }
-  is DragSource.FreeCell -> null
+  is DragSource.FreeCell, is DragSource.BoardSlot -> null
 }
 
 private fun foundationDisplayedIndexAfter(state: KlondikeState, suit: Suit): Int =

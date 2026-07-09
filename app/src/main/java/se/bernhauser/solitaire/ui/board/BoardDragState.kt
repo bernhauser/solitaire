@@ -204,6 +204,8 @@ sealed interface DragSource {
   data class Foundation(val suit: Suit) : DragSource
   data class TableauRun(val column: Int, val fromIndex: Int) : DragSource
   data class FreeCell(val index: Int) : DragSource
+  /** A fixed board position in layouts without columns (TriPeaks peaks, Pyramid). */
+  data class BoardSlot(val index: Int) : DragSource
 }
 
 sealed interface DropTarget {
@@ -220,6 +222,7 @@ sealed interface Anchor {
   data class TableauTop(val column: Int) : Anchor
   data class FoundationDisplayedAt(val index: Int) : Anchor
   data class FreeCellAt(val index: Int) : Anchor
+  data class BoardSlotAt(val index: Int) : Anchor
 }
 
 enum class StockAnimMode { Draw, Recycle }

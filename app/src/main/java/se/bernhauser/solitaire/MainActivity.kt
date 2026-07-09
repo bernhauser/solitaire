@@ -20,6 +20,7 @@ import se.bernhauser.solitaire.ui.landing.GameMenuItem
 import se.bernhauser.solitaire.ui.landing.LandingScreen
 import se.bernhauser.solitaire.ui.spider.SpiderScreen
 import se.bernhauser.solitaire.ui.theme.SolitaireTheme
+import se.bernhauser.solitaire.ui.tripeaks.TriPeaksScreen
 
 class MainActivity : ComponentActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,7 +34,7 @@ class MainActivity : ComponentActivity() {
   }
 }
 
-private enum class AppScreen { Landing, Klondike, Spider, FreeCell }
+private enum class AppScreen { Landing, Klondike, Spider, FreeCell, TriPeaks }
 
 @Composable
 private fun AppRoot() {
@@ -43,10 +44,12 @@ private fun AppRoot() {
       onPlayKlondike = { screen = AppScreen.Klondike },
       onPlaySpider = { screen = AppScreen.Spider },
       onPlayFreeCell = { screen = AppScreen.FreeCell },
+      onPlayTriPeaks = { screen = AppScreen.TriPeaks },
     )
     AppScreen.Klondike -> KlondikeScreen(onBack = { screen = AppScreen.Landing })
     AppScreen.Spider -> SpiderScreen(onBack = { screen = AppScreen.Landing })
     AppScreen.FreeCell -> FreeCellScreen(onBack = { screen = AppScreen.Landing })
+    AppScreen.TriPeaks -> TriPeaksScreen(onBack = { screen = AppScreen.Landing })
   }
 }
 
@@ -55,6 +58,7 @@ private fun Landing(
   onPlayKlondike: () -> Unit,
   onPlaySpider: () -> Unit,
   onPlayFreeCell: () -> Unit,
+  onPlayTriPeaks: () -> Unit,
 ) {
   val app = LocalContext.current.applicationContext as SolitaireApp
   val hasKlondikeSave by produceState(initialValue = false) {
@@ -65,6 +69,9 @@ private fun Landing(
   }
   val hasFreeCellSave by produceState(initialValue = false) {
     value = app.repositorySupplier.freeCellRepo.load() != null
+  }
+  val hasTriPeaksSave by produceState(initialValue = false) {
+    value = app.repositorySupplier.triPeaksRepo.load() != null
   }
   LandingScreen(
     games = listOf(
@@ -100,6 +107,17 @@ private fun Landing(
         ),
         inProgress = hasFreeCellSave,
         onPlay = onPlayFreeCell,
+      ),
+      GameMenuItem(
+        title = "TriPeaks",
+        description = "Clear three peaks, one card up or down",
+        previewCards = listOf(
+          Card(Rank.Ten, Suit.Hearts),
+          Card(Rank.Jack, Suit.Spades),
+          Card(Rank.Queen, Suit.Diamonds),
+        ),
+        inProgress = hasTriPeaksSave,
+        onPlay = onPlayTriPeaks,
       ),
     ),
   )

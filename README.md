@@ -4,7 +4,7 @@
 
 # Solitaire
 
-A solitaire collection for Android — Klondike, Spider, and FreeCell — built with Jetpack Compose.
+A solitaire collection for Android — Klondike, Spider, FreeCell, and TriPeaks — built with Jetpack Compose.
 
 **Klondike variant:** Draw 3, unlimited redeals, substack moves, reversible foundations. Full rules in [GAMERULES.md](GAMERULES.md).
 
@@ -57,7 +57,8 @@ app/src/main/java/se/bernhauser/solitaire/
 ├── game/           Shared card model (Card, Deck, Piles)
 │   ├── klondike/   Klondike state, rules, and ViewModel
 │   ├── spider/     Spider state, rules, and ViewModel
-│   └── freecell/   FreeCell state, rules, and ViewModel
+│   ├── freecell/   FreeCell state, rules, and ViewModel
+│   └── tripeaks/   TriPeaks layout, state, rules, and ViewModel
 ├── persistence/    Save/load (per-game sessions, SessionCodec)
 ├── repository/     SolitaireRepository — bridges ViewModels and storage
 ├── configuration/  User configuration storage
@@ -67,6 +68,7 @@ app/src/main/java/se/bernhauser/solitaire/
     ├── klondike/   Klondike screen and board
     ├── spider/     Spider screen and board
     ├── freecell/   FreeCell screen and board
+    ├── tripeaks/   TriPeaks screen and board
     ├── landing/    Game picker
     ├── settings/   Settings dialog
     ├── theme/      Material 3 theming

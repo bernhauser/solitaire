@@ -14,6 +14,8 @@ import se.bernhauser.solitaire.game.klondike.moveToFoundation
 import se.bernhauser.solitaire.game.spider.SpiderDifficulty
 import se.bernhauser.solitaire.game.spider.dealFromStock
 import se.bernhauser.solitaire.game.spider.dealNewSpider
+import se.bernhauser.solitaire.game.tripeaks.dealNewTriPeaks
+import se.bernhauser.solitaire.game.tripeaks.drawFromStock
 
 class SessionCodecTest {
   private fun encode(session: KlondikeSession): String =
@@ -74,6 +76,18 @@ class SessionCodecTest {
     val session = SpiderSession(difficulty = SpiderDifficulty.TwoSuits, current = s1, history = listOf(s0))
     val encoded = SessionCodec.encode(SpiderSession.serializer(), SpiderSessionVersion, session)
     val decoded = SessionCodec.decode(SpiderSession.serializer(), SpiderSessionVersion, encoded)
+    assertEquals(session, decoded)
+  }
+
+  @Test
+  fun triPeaksSessionRoundTrip() {
+    val s0 = dealNewTriPeaks(seed = 13L)
+    val s1 = s0.drawFromStock() ?: error("draw failed")
+    // Clear a few slots so nullable board positions round-trip too.
+    val s2 = s1.copy(board = s1.board.mapIndexed { i, c -> if (i < 3) null else c })
+    val session = TriPeaksSession(current = s2, history = listOf(s1, s0))
+    val encoded = SessionCodec.encode(TriPeaksSession.serializer(), TriPeaksSessionVersion, session)
+    val decoded = SessionCodec.decode(TriPeaksSession.serializer(), TriPeaksSessionVersion, encoded)
     assertEquals(session, decoded)
   }
 

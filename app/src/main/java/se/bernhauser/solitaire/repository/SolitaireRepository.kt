@@ -11,11 +11,14 @@ import se.bernhauser.solitaire.persistence.KlondikeSessionVersion
 import se.bernhauser.solitaire.persistence.SessionCodec
 import se.bernhauser.solitaire.persistence.SpiderSession
 import se.bernhauser.solitaire.persistence.SpiderSessionVersion
+import se.bernhauser.solitaire.persistence.TriPeaksSession
+import se.bernhauser.solitaire.persistence.TriPeaksSessionVersion
 
 interface RepositorySupplier {
   val klondikeRepo: GameSessionStore<KlondikeSession>
   val spiderRepo: GameSessionStore<SpiderSession>
   val freeCellRepo: GameSessionStore<FreeCellSession>
+  val triPeaksRepo: GameSessionStore<TriPeaksSession>
 }
 
 interface GameSessionStore<T : Any> {
@@ -69,6 +72,15 @@ class SolitaireRepositorySupplier(applicationContext: Context) : RepositorySuppl
       config = Configuration.FreeCellSavedSession,
       serializer = FreeCellSession.serializer(),
       version = FreeCellSessionVersion,
+    )
+  }
+
+  override val triPeaksRepo: GameSessionStore<TriPeaksSession> by lazy {
+    DataStoreSessionStore(
+      configStorage = configStorage,
+      config = Configuration.TriPeaksSavedSession,
+      serializer = TriPeaksSession.serializer(),
+      version = TriPeaksSessionVersion,
     )
   }
 }
