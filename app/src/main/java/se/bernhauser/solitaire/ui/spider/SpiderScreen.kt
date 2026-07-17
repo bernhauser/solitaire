@@ -20,15 +20,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import se.bernhauser.solitaire.SolitaireApp
 import se.bernhauser.solitaire.game.spider.SpiderDifficulty
 import se.bernhauser.solitaire.game.spider.SpiderViewModel
 import se.bernhauser.solitaire.ui.common.NewGameConfirmDialog
+import se.bernhauser.solitaire.ui.rules.GameRules
+import se.bernhauser.solitaire.ui.rules.RulesDialog
+import se.bernhauser.solitaire.ui.rules.RulesHelpButton
 import se.bernhauser.solitaire.ui.theme.FeltGreen
 import se.bernhauser.solitaire.ui.win.GameOverOverlay
 import se.bernhauser.solitaire.ui.win.WinOverlay
@@ -46,6 +51,7 @@ fun SpiderScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
   val needsNewGame by vm.needsNewGame.collectAsState()
   var showNewGameConfirm by remember { mutableStateOf(false) }
   var showDifficultyPicker by remember { mutableStateOf(false) }
+  var showRules by remember { mutableStateOf(false) }
 
   BackHandler { onBack() }
 
@@ -89,6 +95,10 @@ fun SpiderScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
           onMoveRun = vm::onMoveRun,
         )
       }
+      RulesHelpButton(
+        modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+        onClick = { showRules = true },
+      )
       if (isWon) {
         WinOverlay(onNewGame = { showDifficultyPicker = true })
       } else if (gameOver) {
@@ -122,6 +132,14 @@ fun SpiderScreen(modifier: Modifier = Modifier, onBack: () -> Unit = {}) {
         showDifficultyPicker = true
       },
       onDismiss = { showNewGameConfirm = false },
+    )
+  }
+
+  if (showRules) {
+    RulesDialog(
+      title = "Spider",
+      rules = GameRules.spider,
+      onDismiss = { showRules = false },
     )
   }
 }
