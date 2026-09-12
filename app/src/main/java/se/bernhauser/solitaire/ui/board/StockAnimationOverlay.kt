@@ -38,13 +38,13 @@ fun StockAnimationOverlay(state: BoardDragState) {
           cameraDistance = cameraDistPx
         },
     ) {
-      if (faceUp) {
-        CardFace(modifier = Modifier, card = item.card)
-      } else {
-        CardBackImage(
-          modifier = Modifier.graphicsLayer { rotationY = 180f },
-        )
-      }
+      CardFace(
+        modifier = Modifier.graphicsLayer { rotationY = if (faceUp) 0f else 180f },
+        card = item.card,
+      )
+      CardBackImage(
+        modifier = Modifier.graphicsLayer { rotationY = 180f },
+      )
     }
   }
 }

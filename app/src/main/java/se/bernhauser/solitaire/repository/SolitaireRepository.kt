@@ -1,6 +1,8 @@
 package se.bernhauser.solitaire.repository
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import se.bernhauser.solitaire.configuration.ConfigStorage
 import se.bernhauser.solitaire.configuration.Configuration
@@ -40,7 +42,10 @@ class DataStoreSessionStore<T : Any>(
     SessionCodec.decode(serializer, version, configStorage.get(config))
 
   override suspend fun save(session: T) {
-    configStorage.saveConfig(config, SessionCodec.encode(serializer, version, session))
+    val encoded = withContext(Dispatchers.Default) {
+      SessionCodec.encode(serializer, version, session)
+    }
+    configStorage.saveConfig(config, encoded)
   }
 
   override suspend fun clear() {

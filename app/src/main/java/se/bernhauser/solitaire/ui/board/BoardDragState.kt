@@ -24,8 +24,8 @@ import se.bernhauser.solitaire.game.Suit
 private const val SnapBackDurationMs: Int = 220
 internal const val TapMoveDurationMs: Int = 240
 private const val SettleDurationMs: Int = 160
-internal const val StockMoveDurationMs: Int = 220
-internal const val StockStaggerMs: Int = 70
+internal const val StockMoveDurationMs: Int = 160
+internal const val StockStaggerMs: Int = 50
 
 class BoardDragState {
   var active: ActiveDrag? by mutableStateOf(null)

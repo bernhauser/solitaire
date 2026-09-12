@@ -82,17 +82,3 @@ app/src/main/java/se/bernhauser/solitaire/
 Place your new card files in:
 
 `app/src/main/assets/cards/`
-
-The app currently loads SVGs from there using a strict naming convention — <rank><suit>.svg:
-
-- Ranks: A 2 3 4 5 6 7 8 9 T J Q K
-- Suits: C (Clubs), D (Diamonds), H (Hearts), S (Spades)
-- Card backs: 1B.svg (Red), 2B.svg (Blue)
-
-So the 52 + 2 backs would be e.g. AS.svg, TH.svg, KD.svg, 1B.svg, 2B.svg, …
-
-## License
-
-Source code: MIT — see [LICENSE](LICENSE).
-
-Card SVG assets in `app/src/main/assets/cards/` are by Adrian Kennard (RevK), released under [CC0 / Public Domain](https://creativecommons.org/publicdomain/zero/1.0/). Source: https://www.me.uk/cards/
