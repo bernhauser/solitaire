@@ -98,19 +98,6 @@ private fun GameCard(modifier: Modifier = Modifier, game: GameMenuItem) {
           color = Color.White.copy(alpha = 0.8f),
           fontSize = 16.sp,
         )
-        if (game.inProgress) {
-          Surface(
-            shape = RoundedCornerShape(50),
-            color = Color.White.copy(alpha = 0.18f),
-          ) {
-            Text(
-              modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
-              text = "Game in progress",
-              color = Color.White,
-              fontSize = 13.sp,
-            )
-          }
-        }
       }
     }
   }
