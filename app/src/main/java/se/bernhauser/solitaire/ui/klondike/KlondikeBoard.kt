@@ -192,7 +192,7 @@ fun KlondikeBoard(
             card = card,
             from = stockRect.topLeft,
             to = Offset(targetX, wasteRect.top),
-            flipFromFaceUp = false,
+            flipFromFaceUp = true,
             flipToFaceUp = true,
           )
         }
